@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium URL Shortener & Analytics Dashboard</title>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons for premium visual icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for gorgeous analytics charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+
+  <div class="container">
+    <!-- Header Block -->
+    <header class="glass-header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <i data-lucide="link-2"></i>
+        </div>
+        <div class="logo-text">
+          <h1>Trimly</h1>
+          <span>Premium URL Shortener</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="db-badge" class="db-badge loading">
+          <span class="badge-dot"></span>
+          <span class="badge-text">Connecting DB...</span>
+        </div>
+        <button id="theme-toggle" class="theme-btn" aria-label="Toggle theme">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="dashboard-grid">
+      
+      <!-- Shortener Tool Card -->
+      <section class="glass-card main-tool-card">
+        <h2 class="section-title"><i data-lucide="sparkles"></i> Shorten a Long URL</h2>
+        <p class="section-subtitle">Create memorable, trackable short URLs instantly with full visitor statistics.</p>
+        
+        <form id="shorten-form" class="shorten-form">
+          <div class="input-group">
+            <div class="input-icon"><i data-lucide="link"></i></div>
+            <input type="url" id="long-url" placeholder="Paste your long destination URL here (e.g., https://google.com)..." required autocomplete="off">
+          </div>
+          
+          <!-- Collapsible Advanced Options -->
+          <div class="advanced-toggle-wrapper">
+            <button type="button" id="advanced-toggle" class="advanced-btn">
+              <span>Advanced Options (Custom Alias)</span>
+              <i data-lucide="chevron-down" class="chevron-icon"></i>
+            </button>
+          </div>
+          
+          <div id="advanced-options" class="advanced-options collapsed">
+            <div class="input-group alias-group">
+              <div class="input-icon"><i data-lucide="at-sign"></i></div>
+              <span class="domain-prefix">trimly.co/</span>
+              <input type="text" id="custom-alias" placeholder="custom-alias" autocomplete="off" pattern="^[a-zA-Z0-9-_]+$" title="Only letters, numbers, hyphens, and underscores are allowed.">
+            </div>
+            <span class="input-hint">Branded URLs get up to 34% more click-throughs!</span>
+          </div>
+
+          <button type="submit" id="submit-btn" class="primary-btn">
+            <span class="btn-text">Shorten Link</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </form>
+      </section>
+
+      <!-- URL Dashboard Manager -->
+      <section class="glass-card links-dashboard">
+        <div class="dashboard-header">
+          <div class="title-wrap">
+            <h2 class="section-title"><i data-lucide="list"></i> Your Active Links</h2>
+            <span id="link-count" class="counter-badge">0 Links</span>
+          </div>
+          <div class="search-filter-wrap">
+            <div class="search-input-group">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="search-links" placeholder="Search saved links...">
+            </div>
+          </div>
+        </div>
+
+        <!-- Links List Table/Grid container -->
+        <div id="links-container" class="links-container">
+          <!-- Loading State -->
+          <div id="links-loader" class="loader-wrap">
+            <div class="spinner"></div>
+            <p>Loading your Trimly active links...</p>
+          </div>
+
+          <!-- Empty State -->
+          <div id="empty-state" class="empty-state hidden">
+            <div class="empty-icon"><i data-lucide="link-2-off"></i></div>
+            <h3>No URLs Shortened Yet</h3>
+            <p>Paste a long URL above to generate your first premium short link with analytical graphs!</p>
+          </div>
+
+          <!-- Active URLs Grid -->
+          <div id="urls-list" class="urls-list hidden">
+            <!-- Programmatically injected items will go here -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification Overlay Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ANALYTICS MODAL DIALOG -->
+  <div id="analytics-modal" class="modal-backdrop hidden">
+    <div class="glass-modal modal-large">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="bar-chart-3" class="modal-icon"></i>
+          <div>
+            <h3 id="modal-short-link" class="modal-title">trimly.co/abcdef</h3>
+            <p id="modal-original-link" class="modal-subtitle">https://longurl.com/a/very/long/path/name/goes/here/which/is/long</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" aria-label="Close modal"><i data-lucide="x"></i></button>
+      </div>
+      
+      <div class="modal-content">
+        <!-- Quick stats badges -->
+        <div class="quick-stats-row">
+          <div class="stat-card">
+            <span class="stat-label">Total Clicks</span>
+            <div id="stat-total-clicks" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Date Created</span>
+            <div id="stat-created-date" class="stat-value">May 31, 2026</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Unique Referrers</span>
+            <div id="stat-unique-referrers" class="stat-value">0</div>
+          </div>
+        </div>
+
+        <!-- Chart Grid -->
+        <div class="charts-grid">
+          <!-- Clicks Timeline Chart -->
+          <div class="chart-container span-full">
+            <h4 class="chart-title"><i data-lucide="trending-up"></i> Clicks Over Time</h4>
+            <div class="canvas-wrap">
+              <canvas id="clicksTimelineChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Browser Breakdown -->
+          <div class="chart-container">
+            <h4 class="chart-title"><i data-lucide="chrome"></i> Top Browsers</h4>
+            <div class="canvas-wrap">
+              <canvas id="browserChart"></canvas>
+            </div>
+          </div>
+
+          <!-- OS Breakdown -->
+          <div class="chart-container">
+            <h4 class="chart-title"><i data-lucide="monitor"></i> Top OS</h4>
+            <div class="canvas-wrap">
+              <canvas id="osChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Referrers breakdown list -->
+          <div class="chart-container span-full">
+            <h4 class="chart-title"><i data-lucide="globe"></i> Top Traffic Sources</h4>
+            <div id="referrers-list" class="referrers-list">
+              <!-- Dynamically populated referrers list will go here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR CODE MODAL DIALOG -->
+  <div id="qr-modal" class="modal-backdrop hidden">
+    <div class="glass-modal modal-small">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="qr-code" class="modal-icon"></i>
+          <div>
+            <h3 class="modal-title">QR Code Sharing</h3>
+            <p class="modal-subtitle">Scan to open on a mobile phone instantly</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" aria-label="Close modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-content qr-content">
+        <div class="qr-code-wrapper">
+          <img id="qr-image" src="" alt="QR Code Link" class="qr-image">
+          <div class="qr-loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <p id="qr-link-text" class="qr-link-text">trimly.co/xyz</p>
+        <button id="download-qr-btn" class="secondary-btn"><i data-lucide="download"></i> Download QR Image</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side application controller -->
+  <script src="app.js"></script>
+</body>
+</html>
